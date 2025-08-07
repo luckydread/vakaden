@@ -1,13 +1,12 @@
-version: "3.9"
-
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
-      - "8000:8000"
-    restart: always
-    environment:
-      - DJANGO_SETTINGS_MODULE=myproject.settings
+      - "8000:8000"   # Exposes backend on host port 8000
     volumes:
       - ./backend:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=vakaden.settings
 
