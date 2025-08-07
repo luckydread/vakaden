@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'app',
     'corsheaders',
-    'corsheaders.middleware.CorsMiddleware',
     'rest_framework',
 ]
 
@@ -160,7 +159,6 @@ ALLOWED_HOSTS = ['*']
 CORS_ALLOW_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "138.68.79.101",
     "http://192.168.68.115:8080",
 ]
 CORS_ALLOW_METHODS = [
