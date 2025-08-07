@@ -1,18 +1,13 @@
-version: '3.8'
+version: "3.9"
 
 services:
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     ports:
       - "8000:8000"
+    restart: always
+    environment:
+      - DJANGO_SETTINGS_MODULE=myproject.settings
     volumes:
       - ./backend:/app
-    restart: always
 
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "80:80"
-    restart: always
