@@ -1,7 +1,7 @@
 # Stage 1: Build the frontend
 FROM node:18-alpine AS build
 
-WORKDIR /app
+WORKDIR /frontend
 
 # Copy package files and install dependencies
 COPY package*.json ./
@@ -20,7 +20,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built frontend files from the previous stage
-COPY --from=build /app/dist/ /usr/share/nginx/html
+COPY --from=build /frontend/dist/ /usr/share/nginx/html
 
 # Copy your custom nginx config if you have one
 # COPY nginx/vakaden.com.conf /etc/nginx/conf.d/default.conf
