@@ -1,0 +1,17 @@
+{
+  "name": "presentation-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+      "test": "cypress run --spec 'vakaden/cypress/backend.cy.js'",
+      "build": "echo build your app here",
+      "start": "echo start your app here"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+      "cypress": "^12.17.4"
+  }
+}
