@@ -8,7 +8,7 @@ import { makeDjangoApiRequest } from "@/components/DjangoApiClient";
 
 const Index = () => {
   const response =  makeDjangoApiRequest({
-    url: "http://localhost:8000/",
+    url: "/",
     method: "GET"
   });
 

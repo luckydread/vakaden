@@ -28,7 +28,6 @@ export const makeDjangoApiRequest = async ({
       'Authorization': `Bearer ${accessToken}`
     };
 
-    // Remove the /api prefix since we're no longer using it
     const fullUrl = url.startsWith('/') ? url : `/${url}`;
 
     const response = await axios({

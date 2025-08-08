@@ -17,7 +17,7 @@ const TradesmanDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userData = localStorage.getItem("vakaden_user");
+    const userData = localStorage.getItem("user");
     if (!userData) {
       navigate("/login");
       return;
@@ -32,7 +32,7 @@ const TradesmanDashboard = () => {
     setUser(parsedUser);
 
     // Find tradesman profile
-    const tradesmen = JSON.parse(localStorage.getItem("vakaden_tradesmen") || "[]");
+    const tradesmen = JSON.parse(localStorage.getItem("tradesmen") || "[]");
     const tradesmanProfile = tradesmen.find((t: any) => t.email === parsedUser.email);
     if (tradesmanProfile) {
       setProfile(tradesmanProfile);
@@ -41,7 +41,7 @@ const TradesmanDashboard = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("vakaden_user");
+    localStorage.removeItem("user");
     navigate("/");
   };
 
@@ -51,11 +51,11 @@ const TradesmanDashboard = () => {
 
   const handleSave = () => {
     // Update profile in localStorage
-    const tradesmen = JSON.parse(localStorage.getItem("vakaden_tradesmen") || "[]");
+    const tradesmen = JSON.parse(localStorage.getItem("tradesmen") || "[]");
     const updatedTradesmen = tradesmen.map((t: any) => 
       t.email === user.email ? { ...editForm, specialties: editForm.specialties.split(',').map((s: string) => s.trim()) } : t
     );
-    localStorage.setItem("vakaden_tradesmen", JSON.stringify(updatedTradesmen));
+    localStorage.setItem("tradesmen", JSON.stringify(updatedTradesmen));
     
     setProfile(editForm);
     setIsEditing(false);

@@ -25,7 +25,7 @@ const ForgotPassword = () => {
       localStorage.removeItem('access_token');
 
       const response = await makeDjangoApiRequest({
-        url: "http://localhost:8000/password-reset",
+        url: "/password-reset",
         method: "POST",
         data: { email },
         headers: {

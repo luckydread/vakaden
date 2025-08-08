@@ -29,7 +29,7 @@ const ResetPassword = () => {
     setIsLoading(true);
     try {
       const response = await makeDjangoApiRequest({
-        url: `http://localhost:8000/password-reset-confirm/${uid}/${token}`,
+        url: `/password-reset-confirm/${uid}/${token}`,
         method: "POST",
         data: { 
           new_password: password 

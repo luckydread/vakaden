@@ -46,16 +46,16 @@ const TradesmenSignup = () => {
     };
 
     // Store in localStorage
-    localStorage.setItem("vakaden_user", JSON.stringify({
+    localStorage.setItem("user", JSON.stringify({
       email: formData.email,
       name: formData.name,
       userType: 'tradesman'
     }));
     
     // Store tradesman profile
-    const existingTradesmen = JSON.parse(localStorage.getItem("vakaden_tradesmen") || "[]");
+    const existingTradesmen = JSON.parse(localStorage.getItem("tradesmen") || "[]");
     existingTradesmen.push(tradesmanProfile);
-    localStorage.setItem("vakaden_tradesmen", JSON.stringify(existingTradesmen));
+    localStorage.setItem("tradesmen", JSON.stringify(existingTradesmen));
     
     navigate("/tradesman-dashboard");
   };
