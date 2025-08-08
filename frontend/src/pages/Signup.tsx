@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, User, Wrench, Home } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,14 +20,14 @@ const Signup = () => {
   const [tradesmanData, setTradesmanData] = useState({
     email: "",
     password: "",
+    is_tradesman: true,
     profession: "",
     experience: "",
     location: "",
-    hourlyRateMin: "",
-    hourlyRateMax: "",
-    specialties: "",
-    qualifications: "",
-    description: ""
+    description: "",
+    price: "",
+    hourly_rate: false,
+    specialties: ""
   });
   
   const navigate = useNavigate();
@@ -88,9 +89,11 @@ const Signup = () => {
           password: tradesmanData.password,
           user_type: 'tradesman',
           profession: tradesmanData.profession,
-          hourly_rate_min: parseInt(tradesmanData.hourlyRateMin),
-          hourly_rate_max: parseInt(tradesmanData.hourlyRateMax),
-          qualifications: tradesmanData.qualifications,
+          experience: tradesmanData.experience,
+          location: tradesmanData.location,
+          hourly_rate: tradesmanData.hourly_rate,
+          price: parseInt(tradesmanData.price),
+          specialties: tradesmanData.specialties,
           description: tradesmanData.description
         },
         skipAuth: true
@@ -318,30 +321,17 @@ const Signup = () => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hourlyRateMin">Hourly Rate (Min $)</Label>
-                  <Input
-                    id="hourlyRateMin"
-                    name="hourlyRateMin"
-                    type="number"
-                    placeholder="75"
-                    value={tradesmanData.hourlyRateMin}
-                    onChange={handleTradesmanChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hourlyRateMax">Hourly Rate (Max $)</Label>
-                  <Input
-                    id="hourlyRateMax"
-                    name="hourlyRateMax"
-                    type="number"
-                    placeholder="120"
-                    value={tradesmanData.hourlyRateMax}
-                    onChange={handleTradesmanChange}
-                    required
-                  />
-                </div>
+                        <div className="space-y-2">
+            <Label htmlFor="hourlyRate">Hourly Rate?</Label>
+            <Switch
+              id="hourlyRate"
+              name="hourlyRate"
+              checked={tradesmanData.hourly_rate}
+              onCheckedChange={(checked) => setTradesmanData(prev => ({ ...prev, hourly_rate: checked }))}
+              required
+            />
+          </div>
+               
               </div>
 
               <div className="space-y-2">
@@ -358,16 +348,28 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="qualifications">Qualifications & Certifications</Label>
-                <Textarea
-                  id="qualifications"
-                  name="qualifications"
-                  placeholder="List your licenses, certifications, and qualifications"
-                  value={tradesmanData.qualifications}
-                  onChange={handleTradesmanChange}
-                  rows={3}
-                />
-              </div>
+  <Label htmlFor="price">Price</Label>
+  <div className="relative">
+    <Input
+      id="price"
+      name="price"
+      type="number"
+      min="0"
+      step="0.01"
+      placeholder="Enter your price"
+      value={tradesmanData.price || ''}
+      onChange={handleTradesmanChange}
+      required
+      className="pl-8"
+    />
+    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+  </div>
+  <p className="text-sm text-muted-foreground">
+    Enter your base price for services
+  </p>
+</div>
+
+             
 
               <div className="space-y-2">
                 <Label htmlFor="description">Professional Description</Label>
