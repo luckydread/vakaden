@@ -28,8 +28,8 @@ export const makeDjangoApiRequest = async ({
       'Authorization': `Bearer ${accessToken}`
     };
 
-    // Add /api prefix to all requests to use the Vite proxy
-    const fullUrl = url.startsWith('/') ? `/api${url}` : `/api/${url}`;
+    // Remove the /api prefix since we're no longer using it
+    const fullUrl = url.startsWith('/') ? url : `/${url}`;
 
     const response = await axios({
       url: fullUrl,
