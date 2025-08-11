@@ -7,12 +7,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { makeDjangoApiRequest } from "@/components/DjangoApiClient";
 
 const Index = () => {
-  const response =  makeDjangoApiRequest({
+  const response = makeDjangoApiRequest({
     url: "/",
     method: "GET"
   });
 
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Navigation */}
@@ -21,7 +21,7 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <Building className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">Vakaden</span>
+              <span className="text-xl font-bold text-gray-900">Vakadeny</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link to="/login">
@@ -43,7 +43,7 @@ const Index = () => {
             <span className="block text-blue-600">With AI-Powered Planning</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            From AI-generated house plans to component calculations and tradesman connections - 
+            From AI-generated house plans to component calculations and tradesman connections -
             manage your entire house building process in one powerful platform.
           </p>
           <div className="flex justify-center space-x-4">
@@ -70,7 +70,7 @@ const Index = () => {
               Our comprehensive platform streamlines every aspect of house construction
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="text-center">
