@@ -12,6 +12,7 @@ BACKEND (container name is = backend)
 
 Frontend
 
-- Build frontend : sudo docker build -t vakaden-frontend .
+- docker build -t vakaden-frontend .
+- docker run -d -p 3000:80 --name vakaden-frontend vakaden-frontend
 
 

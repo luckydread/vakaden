@@ -1,20 +1,48 @@
-version: "3.8"
+version: '3.8'
 
 services:
+  # Reverse proxy (HTTPS + routing)
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: vakaden-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - ./certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    restart: unless-stopped
+
+  # Let's Encrypt companion for certificates
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: vakaden-letsencrypt
+    environment:
+      - DEFAULT_EMAIL=you@example.com # <-- change to your email
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - ./certs:/etc/nginx/certs
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
-    ports:
-      - "80:80"
-    container_name: vakaden_frontend
+    environment:
+      - VIRTUAL_HOST=vakaden.com,www.vakaden.com
+      - LETSENCRYPT_HOST=vakaden.com,www.vakaden.com
+      - LETSENCRYPT_EMAIL=you@example.com # <-- change to your email
+    restart: unless-stopped
 
   backend:
     build:
-      context: ./backend  # ✅ THIS SHOULD BE A MAPPING
-    ports:
-      - "8000:8000"
-    container_name: vakaden_backend
-    depends_on:
-      - frontend
-
-
+      context: ./backend
+    environment:
+      - VIRTUAL_HOST=vakaden.com
+      - VIRTUAL_PATH=/api
+      - LETSENCRYPT_HOST=vakaden.com, www.vakaden.com
+      - LETSENCRYPT_EMAIL=you@example.com
+    restart: unless-stopped
