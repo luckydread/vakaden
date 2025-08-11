@@ -31,11 +31,15 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vakaden_frontend
     environment:
       - VIRTUAL_HOST=vakaden.com,www.vakaden.com
       - LETSENCRYPT_HOST=vakaden.com,www.vakaden.com
       - LETSENCRYPT_EMAIL=you@example.com # <-- change to your email
     restart: unless-stopped
+    networks:
+      - web
 
   backend:
     build:
