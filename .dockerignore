@@ -1,0 +1,17 @@
+# Node
+node_modules
+dist
+build
+npm-debug.log
+yarn-error.log
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.* 
+*.sqlite3
+
+# Git
+.git

@@ -1,68 +1,15 @@
-version: "3.8"
-
 services:
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    container_name: vakaden-proxy
-    restart: unless-stopped
+  api:
+    build: ./api
     ports:
-      - "80:80"
-      - "443:443"
+      - "8000:8000"
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-      - ./nginx/vhost.d:/etc/nginx/vhost.d
-      - ./nginx/html:/usr/share/nginx/html
-    networks:
-      - webnet
+      - ./api:/api
+    command: bash -c "python manage.py runserver 0.0.0.0:8000"
 
-  letsencrypt:
-    image: nginxproxy/acme-companion
-    container_name: vakaden-letsencrypt
-    restart: unless-stopped
-    depends_on:
-      - nginx-proxy
-    environment:
-      - NGINX_PROXY_CONTAINER=vakaden-proxy
-      - ACME_CA_URI=https://acme-v02.api.letsencrypt.org/directory
+  web:
+    build: ./frontend
+    ports:
+      - "3000:3000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./nginx/certs:/etc/nginx/certs:rw
-      - ./nginx/vhost.d:/etc/nginx/vhost.d
-      - ./nginx/html:/usr/share/nginx/html
-    networks:
-      - webnet
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: vakaden-frontend
-    restart: unless-stopped
-    environment:
-      - VIRTUAL_HOST=vakaden.com,www.vakaden.com
-      - LETSENCRYPT_HOST=vakaden.com,www.vakaden.com
-      - LETSENCRYPT_EMAIL=your-email@example.com
-    expose:
-      - "80"
-    networks:
-      - webnet
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: vakaden-backend
-    restart: unless-stopped
-    environment:
-      - VIRTUAL_HOST=vakaden.com,www.vakaden.com
-      - LETSENCRYPT_HOST=vakaden.com,www.vakaden.com
-      - LETSENCRYPT_EMAIL=your-email@example.com
-    expose:
-      - "8000"
-    networks:
-      - webnet
-
-networks:
-  webnet:
-    driver: bridge
+      - ./frontend:/frontend

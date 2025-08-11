@@ -1,26 +1,12 @@
-This project is 
+This project is a project with a react-vite frontend and a djang-rest api backend.
 
-BACKEND (container name is = backend)
+To run the project do the following:
 
-- Restart nginx : sudo nginx -t && sudo systemctl reload nginx
-- Check Logs : sudo docker-compose logs -f <container_name>
-- Build container : sudo docker-compose -d --build <container_name> (use this command if you have changed the code)
-- Migrate the Django container : sudo docker-compose exec backend python manage.py migrate
-- Run container : sudo docker compose up -d <container_name>
-- Check if container is running : sudo docker ps
-
-
-Frontend
-
-CLEAN-UP COMMANDS
-- sudo docker compose-down --remove-orphans
-- sudo docker system prune -af --volumes
-
-CLEAN RESTART
-
-- sudo docker-compose build --no-cache
-- sudo docker-compose up -d
-
-
+1. From the root folder, run "sudo docker compose -f docker-compose.prod.yml down" to kill any running containers
+2. Run "sudo docker-compose down --remove-orphans" to remove any unused containers
+3. Run "sudo docker system prune -af --volumes" to delet any unused volumes
+4. Run "sudo docker-compose -f docker-compose.prod.yml up --build -d" to build containers
+4. Run "sudo docker logs <container_name> --tail 50" to check container logs
+5. Run "sudo docker ps -a" to check which containers are running
 
 

@@ -8,7 +8,7 @@ interface DjangoApiResponse<T> {
 
 interface DjangoApiRequestConfig {
   url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: string;
   data?: any;
   headers?: any;
   skipAuth?: boolean; 
@@ -28,10 +28,10 @@ export const makeDjangoApiRequest = async ({
       'Authorization': `Bearer ${accessToken}`
     };
 
-    const fullUrl = url.startsWith('/') ? url : `/${url}`;
+   const fullUrl = url.startsWith('/') ? url : `/${url}`;
 
-    const response = await axios({
-      url: fullUrl,
+    const response = await axios.request({
+      url: 'http://0.0.0.0:8000' + fullUrl,
       method,
       data,
       headers: {
