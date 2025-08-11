@@ -12,12 +12,15 @@ BACKEND (container name is = backend)
 
 Frontend
 
-- docker build -t vakaden-frontend .
-- docker run -d -p 3000:80 --name vakaden-frontend vakaden-frontend
-
 CLEAN-UP COMMANDS
-- sudo docker compose down --remove-orphans
+- sudo docker compose-down --remove-orphans
 - sudo docker system prune -af --volumes
+
+CLEAN RESTART
+
+- sudo docker-compose build --no-cache
+- sudo docker-compose up -d
+
 
 
 

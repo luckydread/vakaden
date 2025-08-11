@@ -1,52 +1,68 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # Reverse proxy (HTTPS + routing)
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: vakaden-proxy
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/nginx/vhost.d
-      - /usr/share/nginx/html
-      - ./certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    restart: unless-stopped
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - ./nginx/html:/usr/share/nginx/html
+    networks:
+      - webnet
 
-  # Let's Encrypt companion for certificates
   letsencrypt:
     image: nginxproxy/acme-companion
     container_name: vakaden-letsencrypt
-    environment:
-      - DEFAULT_EMAIL=you@example.com # <-- change to your email
-    volumes_from:
-      - nginx-proxy
-    volumes:
-      - ./certs:/etc/nginx/certs
-      - /var/run/docker.sock:/tmp/docker.sock:ro
     restart: unless-stopped
+    depends_on:
+      - nginx-proxy
+    environment:
+      - NGINX_PROXY_CONTAINER=vakaden-proxy
+      - ACME_CA_URI=https://acme-v02.api.letsencrypt.org/directory
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./nginx/certs:/etc/nginx/certs:rw
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - ./nginx/html:/usr/share/nginx/html
+    networks:
+      - webnet
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: vakaden_frontend
+    container_name: vakaden-frontend
+    restart: unless-stopped
     environment:
       - VIRTUAL_HOST=vakaden.com,www.vakaden.com
       - LETSENCRYPT_HOST=vakaden.com,www.vakaden.com
-      - LETSENCRYPT_EMAIL=you@example.com # <-- change to your email
-    restart: unless-stopped
+      - LETSENCRYPT_EMAIL=your-email@example.com
+    expose:
+      - "80"
     networks:
-      - web
+      - webnet
 
   backend:
     build:
       context: ./backend
-    environment:
-      - VIRTUAL_HOST=vakaden.com
-      - VIRTUAL_PATH=/api
-      - LETSENCRYPT_HOST=vakaden.com, www.vakaden.com
-      - LETSENCRYPT_EMAIL=you@example.com
+      dockerfile: Dockerfile
+    container_name: vakaden-backend
     restart: unless-stopped
+    environment:
+      - VIRTUAL_HOST=vakaden.com,www.vakaden.com
+      - LETSENCRYPT_HOST=vakaden.com,www.vakaden.com
+      - LETSENCRYPT_EMAIL=your-email@example.com
+    expose:
+      - "8000"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
