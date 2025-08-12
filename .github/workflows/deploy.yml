@@ -1,0 +1,59 @@
+name: CI & Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com/vakaden
+  API_IMAGE_NAME: api
+  WEB_IMAGE_NAME: web
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DOCR
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Build & push API image
+        run: |
+          TAG=${GITHUB_SHA::7}
+          docker build -t $REGISTRY/$API_IMAGE_NAME:$TAG ./api
+          docker push $REGISTRY/$API_IMAGE_NAME:$TAG
+
+      - name: Build & push Web image
+        run: |
+          TAG=${GITHUB_SHA::7}
+          docker build -t $REGISTRY/$WEB_IMAGE_NAME:$TAG ./frontend
+          docker push $REGISTRY/$WEB_IMAGE_NAME:$TAG
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    steps:
+      - name: Deploy to droplet
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSHKEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          script: |
+            TAG=${GITHUB_SHA::7}
+            REGISTRY=registry.digitalocean.com/vakaden
+
+            # Login to registry
+            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} \
+              -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
+
+            # Crea
