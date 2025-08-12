@@ -1,5 +1,6 @@
 services:
   api:
+    image: registry.digitalocean.com/vakaden/api:${IMAGE_TAG:-latest}
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -12,6 +13,7 @@ services:
       - "8000:8000"
 
   web:
+    image: registry.digitalocean.com/vakaden/web:${IMAGE_TAG:-latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile
