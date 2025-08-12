@@ -1,11 +1,6 @@
 services:
   api:
     image: registry.digitalocean.com/vakaden/api:${IMAGE_TAG:-latest}
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-      args:
-        DJANGO_SETTINGS_MODULE: vakaden.settings.production
     restart: always
     expose:
       - "8000"
@@ -14,9 +9,6 @@ services:
 
   web:
     image: registry.digitalocean.com/vakaden/web:${IMAGE_TAG:-latest}
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
     restart: always
     ports:
       - "80:80"

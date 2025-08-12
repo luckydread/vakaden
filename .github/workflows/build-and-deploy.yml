@@ -1,9 +1,15 @@
-name: CI & Deploy
+name: CI and Deploy
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version (e.g. v1.0.3)'
+        required: true
 
 env:
   REGISTRY: registry.digitalocean.com/vakaden
@@ -14,34 +20,34 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Build API image
+        run: docker build -t $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }} -f ./api/Dockerfile ./api
+
+      - name: Build Web image
+        run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }} -f ./web/Dockerfile ./web
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Log in to DOCR
-        run: doctl registry login --expiry-seconds 600
+      - name: Login to registry
+        run: doctl registry login
 
-      - name: Build & push API image
-        run: |
-          TAG=${GITHUB_SHA::7}
-          docker build -t $REGISTRY/$API_IMAGE_NAME:$TAG ./api
-          docker push $REGISTRY/$API_IMAGE_NAME:$TAG
+      - name: Push API image
+        run: docker push $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }}
 
-      - name: Build & push Web image
-        run: |
-          TAG=${GITHUB_SHA::7}
-          docker build -t $REGISTRY/$WEB_IMAGE_NAME:$TAG ./frontend
-          docker push $REGISTRY/$WEB_IMAGE_NAME:$TAG
+      - name: Push Web image
+        run: docker push $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
 
   deploy:
-    runs-on: ubuntu-latest
     needs: build_and_push
+    runs-on: ubuntu-latest
     steps:
-      - name: Deploy to droplet
+      - name: Deploy on droplet via SSH
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.HOST }}
@@ -49,11 +55,12 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            TAG=${GITHUB_SHA::7}
-            REGISTRY=registry.digitalocean.com/vakaden
+            cd ~/app-directory
+            # Export the version so the compose file can use it
+            export APP_VERSION=${{ github.event.inputs.version }}
 
-            # Login to registry
-            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} \
-              -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
+            # Pull the updated images
+            docker compose -f docker-compose.prod.yml pull
 
-            # Crea
+            # Recreate containers with new images, remove old containers
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
