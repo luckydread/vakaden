@@ -1,14 +1,14 @@
 name: Deploy
 
 on:
-  workflow_dispatch:  # Manual trigger
-  push:
-    branches: [ "main" ]
-    tags: [ "v*" ]     # Also trigger on version tags
+  workflow_run:
+    workflows: ["Build and Push Images"]
+    types:
+      - completed
 
 jobs:
   deploy:
-    needs: build_and_push
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy on droplet via SSH
