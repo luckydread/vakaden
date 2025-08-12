@@ -31,17 +31,20 @@ jobs:
       - name: Login to DigitalOcean Container Registry
         run: doctl registry login
 
+      - name: Remove all old images
+        run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete $IMAGE_NAME; fi
+
       - name: Build API image
         run: docker build -t $REGISTRY/$API_IMAGE_NAME:latest -f ./api/Dockerfile ./api
 
-    ##  - name: Build Frontend image
-    ##    run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }} -f ./frontend/Dockerfile ./frontend
+      - name: Build Frontend image
+        run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:latest -f ./frontend/Dockerfile ./frontend
 
       - name: Push API image
         run: docker push $REGISTRY/$API_IMAGE_NAME:latest
 
-    ##  - name: Push Frontend image
-    ##    run: docker push $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
+      - name: Push Frontend image
+        run: docker push $REGISTRY/$WEB_IMAGE_NAME:latest
 
   deploy:
     needs: build_and_push
