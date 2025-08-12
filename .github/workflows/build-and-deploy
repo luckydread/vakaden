@@ -1,65 +1,47 @@
-name: CI
+name: CI & Deploy
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version'
-        required: true
 
 env:
-  REGISTRY: "registry.digitalocean.com/vakaden"
-  API_IMAGE_NAME: "api"
-  WEB_IMAGE_NAME: "web"
+  REGISTRY: registry.digitalocean.com/vakaden
+  API_IMAGE_NAME: api
+  WEB_IMAGE_NAME: web
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repo
+      - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Build container images
-        run: docker compose -f docker-compose.prod.yml up --build -d
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-    
-      - name: Log in to DigitalOcean Container Registry
-        run: doctl registry login --expiry-seconds 600
-      
-      - name: Remove all old images
-        run: |
-          for IMAGE in "$API_IMAGE_NAME" "$WEB_IMAGE_NAME"; do
-            REPO="vakaden/$IMAGE"
-            if doctl registry repository list --format Name --no-header | grep -q "^$REPO$"; then
-              DIGESTS=$(doctl registry repository list-tags "$REPO" --format Digest --no-header)
-              if [ -n "$DIGESTS" ]; then
-                echo "$DIGESTS" | while read -r DIGEST; do
-                  doctl registry repository delete-manifest "$REPO" "$DIGEST" --force
-                done
-              else
-                echo "No tags found for $REPO"
-              fi
-            else
-              echo "No repository for $REPO"
-            fi
-          done
 
-      - name: Push images to DigitalOcean Container Registry
-        run: docker compose -f docker-compose.prod.yml push
-        
+      - name: Log in to DOCR
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Build & push API image
+        run: |
+          TAG=${GITHUB_SHA::7}
+          docker build -t $REGISTRY/$API_IMAGE_NAME:$TAG ./api
+          docker push $REGISTRY/$API_IMAGE_NAME:$TAG
+
+      - name: Build & push Web image
+        run: |
+          TAG=${GITHUB_SHA::7}
+          docker build -t $REGISTRY/$WEB_IMAGE_NAME:$TAG ./frontend
+          docker push $REGISTRY/$WEB_IMAGE_NAME:$TAG
+
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push
     steps:
-      - name: Deploy to Digital Ocean droplet via SSH action
+      - name: Deploy to droplet
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.HOST }}
@@ -67,12 +49,11 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
-            for IMAGE in "$API_IMAGE_NAME" "$WEB_IMAGE_NAME"; do
-              docker stop "$IMAGE" || true
-              docker rm "$IMAGE" || true
-              docker run -d \
-                --restart always \
-                --name "$IMAGE" \
-                $REGISTRY/vakaden/$IMAGE:${GITHUB_SHA::7}
-            done
+            TAG=${GITHUB_SHA::7}
+            REGISTRY=registry.digitalocean.com/vakaden
+
+            # Login to registry
+            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} \
+              -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
+
+            # Crea
