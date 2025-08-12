@@ -1,16 +1,16 @@
+version: "3.8"
+
 services:
   api:
-    image: registry.digitalocean.com/vakaden/api:${IMAGE_TAG:-latest}
+    image: ${API_IMAGE}
     restart: always
-    expose:
-      - "8000"
     ports:
-      - "8000:8000"
+      - "5000:5000"
+    env_file:
+      - ./api.env  # optional if you have API-specific env vars
 
-  web:
-    image: registry.digitalocean.com/vakaden/web:${IMAGE_TAG:-latest}
+  frontend:
+    image: ${FRONTEND_IMAGE}
     restart: always
     ports:
       - "80:80"
-    depends_on:
-      - api

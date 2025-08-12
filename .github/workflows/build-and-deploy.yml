@@ -3,18 +3,10 @@ name: CI and Deploy
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version (e.g. v1.0.3)'
-        required: true
 
 env:
   REGISTRY: registry.digitalocean.com/vakaden
-  API_IMAGE_NAME: api
-  WEB_IMAGE_NAME: frontend  # matches your folder name
+  APP_IMAGE_NAME: app  # Single repository for both API & frontend
 
 jobs:
   build_and_push:
@@ -31,43 +23,41 @@ jobs:
       - name: Login to DigitalOcean Container Registry
         run: doctl registry login
 
-      - name: Remove all old images
-        run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete $IMAGE_NAME; fi
+      - name: Get short commit SHA
+        run: echo "SHORT_SHA=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_ENV
 
-      #   - name: Build API image
-      #     run: docker build -t $REGISTRY/$API_IMAGE_NAME:latest -f ./api/Dockerfile ./api
+      - name: Build API image
+        run: docker build -t $REGISTRY/$APP_IMAGE_NAME:api-${SHORT_SHA} -f ./api/Dockerfile ./api
 
       - name: Build Frontend image
-        run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:latest -f ./frontend/Dockerfile ./frontend
+        run: docker build -t $REGISTRY/$APP_IMAGE_NAME:frontend-${SHORT_SHA} -f ./frontend/Dockerfile ./frontend
 
-      # - name: Push API image
-      #   run: docker push $REGISTRY/$API_IMAGE_NAME:latest
+      - name: Push API image
+        run: docker push $REGISTRY/$APP_IMAGE_NAME:api-${SHORT_SHA}
 
       - name: Push Frontend image
-        run: docker push $REGISTRY/$WEB_IMAGE_NAME:latest
+        run: docker push $REGISTRY/$APP_IMAGE_NAME:frontend-${SHORT_SHA}
 
   deploy:
-    runs-on: ubuntu-latest
     needs: build_and_push
-    
+    runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Digital Ocean droplet via SSH action
+      - name: Deploy on droplet via SSH
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA
           script: |
-            # Login to registry
-            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} registry.digitalocean.com
-            # Stop running container
-            docker stop $(echo $IMAGE_NAME)
-            # Remove old container
-            docker rm $(echo $IMAGE_NAME)
-            # Run a new container from a new image
-            docker run -d \
-            --restart always \
-            --name $(echo $IMAGE_NAME) \
-            $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+            REGISTRY=${{ env.REGISTRY }}
+            APP_IMAGE_NAME=${{ env.APP_IMAGE_NAME }}
+            VERSION=$(echo $GITHUB_SHA | head -c7)
+
+            cd ~/app-directory
+
+            # Update environment file for docker-compose
+            echo "API_IMAGE=$REGISTRY/$APP_IMAGE_NAME:api-$VERSION" > .env
+            echo "FRONTEND_IMAGE=$REGISTRY/$APP_IMAGE_NAME:frontend-$VERSION" >> .env
+
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
