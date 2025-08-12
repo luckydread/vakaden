@@ -53,7 +53,7 @@ jobs:
             APP_IMAGE_NAME=${{ env.APP_IMAGE_NAME }}
             VERSION=$(echo $GITHUB_SHA | head -c7)
 
-            cd ~/app-directory
+            cd ~/vakaden
 
             # Update environment file for docker-compose
             echo "API_IMAGE=$REGISTRY/$APP_IMAGE_NAME:api-$VERSION" > .env
