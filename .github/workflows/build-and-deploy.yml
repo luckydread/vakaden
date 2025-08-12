@@ -34,14 +34,14 @@ jobs:
       - name: Build API image
         run: docker build -t $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }} -f ./api/Dockerfile ./api
 
-      - name: Build Frontend image
-        run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }} -f ./frontend/Dockerfile ./frontend
+    ##  - name: Build Frontend image
+    ##    run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }} -f ./frontend/Dockerfile ./frontend
 
       - name: Push API image
-        run: docker push $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }}
+        run: docker push $REGISTRY/$API_IMAGE_NAME:latest
 
-      - name: Push Frontend image
-        run: docker push $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
+    ##  - name: Push Frontend image
+    ##    run: docker push $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
 
   deploy:
     needs: build_and_push
