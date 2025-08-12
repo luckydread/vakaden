@@ -38,10 +38,10 @@ jobs:
         run: doctl registry login
 
       - name: Push API image
-        run: docker push $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }}
+        run: docker push $REGISTRY/$API_IMAGE_NAME:latest $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }}
 
       - name: Push Web image
-        run: docker push $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
+        run: docker push $REGISTRY/$WEB_IMAGE_NAME:latest $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
 
   deploy:
     needs: build_and_push
