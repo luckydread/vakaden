@@ -14,7 +14,7 @@ on:
 env:
   REGISTRY: registry.digitalocean.com/vakaden
   API_IMAGE_NAME: api
-  WEB_IMAGE_NAME: frontend  # Your folder is named frontend, so use this as the image name
+  WEB_IMAGE_NAME: frontend  # matches your folder name
 
 jobs:
   build_and_push:
@@ -22,12 +22,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Build API image
-        run: docker build -t $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }} -f ./api/Dockerfile ./api
-
-      - name: Build Frontend image
-        run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }} -f ./frontend/Dockerfile ./frontend
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
