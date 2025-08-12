@@ -14,7 +14,7 @@ on:
 env:
   REGISTRY: registry.digitalocean.com/vakaden
   API_IMAGE_NAME: api
-  WEB_IMAGE_NAME: web
+  WEB_IMAGE_NAME: frontend  # Your folder is named frontend, so use this as the image name
 
 jobs:
   build_and_push:
@@ -26,7 +26,7 @@ jobs:
       - name: Build API image
         run: docker build -t $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }} -f ./api/Dockerfile ./api
 
-      - name: Build Web image
+      - name: Build Frontend image
         run: docker build -t $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }} -f ./frontend/Dockerfile ./frontend
 
       - name: Install doctl
@@ -34,14 +34,14 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Login to registry
+      - name: Login to DigitalOcean Container Registry
         run: doctl registry login
 
       - name: Push API image
-        run: docker push $REGISTRY/$API_IMAGE_NAME:latest $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }}
+        run: docker push $REGISTRY/$API_IMAGE_NAME:${{ github.event.inputs.version }}
 
-      - name: Push Web image
-        run: docker push $REGISTRY/$WEB_IMAGE_NAME:latest $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
+      - name: Push Frontend image
+        run: docker push $REGISTRY/$WEB_IMAGE_NAME:${{ github.event.inputs.version }}
 
   deploy:
     needs: build_and_push
@@ -56,11 +56,10 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             cd ~/app-directory
-            # Export the version so the compose file can use it
             export APP_VERSION=${{ github.event.inputs.version }}
 
-            # Pull the updated images
+            # Pull updated images with the new tag
             docker compose -f docker-compose.prod.yml pull
 
-            # Recreate containers with new images, remove old containers
+            # Recreate and start containers with the new images
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
