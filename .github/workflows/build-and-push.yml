@@ -30,6 +30,5 @@ jobs:
 
       - name: Build and push API image
         run: |
-          IMAGE_TAG=${GITHUB_SHA::7}-api
-          docker build -t ${{ env.REGISTRY }}/app:$IMAGE_TAG-api -f ./api/Dockerfile ./api
-          docker push ${{ env.REGISTRY }}/app:$IMAGE_TAG-api
+          docker build -t registry.digitalocean.com/vakaden/app:${GITHUB_SHA::7}-api ./api
+          docker push registry.digitalocean.com/vakaden/app:${GITHUB_SHA::7}-api
