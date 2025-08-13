@@ -25,22 +25,6 @@ jobs:
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
 
-      - name: Delete all images from repository
-        run: |
-          REPO="${{ env.REPO }}"
-          REGISTRY="${{ env.REGISTRY }}"
-
-          echo "Fetching tags for $REPO in registry $REGISTRY..."
-          TAGS=$(doctl registry repository list-tags vakaden --format Tag --no-header)
-
-          if [ -z "$TAGS" ]; then
-            echo "No tags found in $REPO"
-          else
-            for tag in $TAGS; do
-              echo "Deleting tag $tag"
-              doctl registry repository delete-tag $REPO $tag --registry $REGISTRY -f
-            done
-          fi
-
-          echo "Starting garbage collection..."
-          doctl registry garbage-collection start --include-untagged-manifests --force $REGISTRY
+      - name: Remove all old images
+        run: if [ ! -z "$(doctl registry repository list | grep "$(echo $REPO)")" ]; then doctl registry repository delete-manifest $(echo $REPO) $(doctl registry repository list-tags $(echo $REPO) | grep -o "sha.*") --force; else echo "No repository"; fi
+    
