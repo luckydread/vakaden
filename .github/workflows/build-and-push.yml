@@ -31,7 +31,7 @@ jobs:
           REGISTRY="${{ env.REGISTRY }}"
 
           echo "Fetching tags for $REPO in registry $REGISTRY..."
-          TAGS=$(doctl registry repository list-tags $REPO $REGISTRY --format Tag --no-header)
+          TAGS=$(doctl registry repository list-tags "$REPO" --registry "$REGISTRY" --format Tag --no-header)
 
           if [ -z "$TAGS" ]; then
             echo "No tags found in $REPO"
