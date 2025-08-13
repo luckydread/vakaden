@@ -32,3 +32,7 @@ jobs:
         run: |
           docker build -t registry.digitalocean.com/vakaden/app:${GITHUB_SHA::7}-api ./api
           docker push registry.digitalocean.com/vakaden/app:${GITHUB_SHA::7}-api
+          
+          docker build -t registry.digitalocean.com/vakaden/app:${GITHUB_SHA::7}-frontend ./frontend
+          docker push registry.digitalocean.com/vakaden/app:${GITHUB_SHA::7}-frontend
+
