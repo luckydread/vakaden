@@ -26,9 +26,9 @@ jobs:
 
       - name: Delete old images
         run: |
-           for tag in $(doctl registry repository list-tags ${{ env.REGISTRY }} --format Tag --no-header); do
+           for tag in $(doctl registry repository list-tags vakaden/app --format Tag --no-header); do
             echo "Deleting tag $tag"
-            doctl registry repository delete-tag ${{ env.REGISTRY }} $tag -f
+            doctl registry repository delete-tag vakaden/app $tag -f
            done
 
       #- name: Garbage collect repository
