@@ -7,6 +7,7 @@ on:
 
 env:
   REGISTRY: "vakaden"
+  REPO: "app"
   IMAGE_NAME: "app"  # Your container name
 
 jobs:
@@ -26,21 +27,20 @@ jobs:
 
       - name: Delete all images from repository
         run: |
-          REPO="vakaden/app"
+          REPO="${{ env.REPO }}"
+          REGISTRY="${{ env.REGISTRY }}"
 
-          echo "Fetching tags for $REPO..."
-          TAGS=$(doctl registry repository list-tags $REPO --format Tag --no-header)
+          echo "Fetching tags for $REPO in registry $REGISTRY..."
+          TAGS=$(doctl registry repository list-tags $REPO --registry $REGISTRY --format Tag --no-header)
 
           if [ -z "$TAGS" ]; then
             echo "No tags found in $REPO"
           else
             for tag in $TAGS; do
               echo "Deleting tag $tag"
-              doctl registry repository delete-tag $REPO $tag -f
+              doctl registry repository delete-tag $REPO $tag --registry $REGISTRY -f
             done
           fi
 
           echo "Starting garbage collection..."
-          doctl registry garbage-collection start --include-untagged-manifests --force vakaden
-          env:
-          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          doctl registry garbage-collection start --include-untagged-manifests --force $REGISTRY
