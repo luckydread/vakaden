@@ -1,75 +1,60 @@
-name: Build and Push Images
+name: Build and Push API + Frontend
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version'
+        required: true
 
 env:
-  REGISTRY: registry.digitalocean.com/vakaden
-  APP_IMAGE_NAME: app
+  REGISTRY: "registry.digitalocean.com/vakaden"
+  API_IMAGE_NAME: "app-api"
+  FRONTEND_IMAGE_NAME: "app-frontend"
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.set_version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set version from commit SHA
-        id: set_version
-        run: echo "version=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_OUTPUT
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Install doctl
-        run: |
-          OS=$(uname | tr '[:upper:]' '[:lower:]')
-          URL="https://github.com/digitalocean/doctl/releases/latest/download/doctl-${OS}-amd64.tar.gz"
-          curl -sSL "$URL" -o doctl.tar.gz
-          tar -xzf doctl.tar.gz
-          sudo mv doctl /usr/local/bin/
-          rm doctl.tar.gz
-
-      - name: Authenticate doctl
-        env:
-          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-        run: |
-          doctl auth init -t $DIGITALOCEAN_ACCESS_TOKEN
-
-      - name: Delete all tags in repository
-        env:
-          IMAGE_NAME: registry.digitalocean.com/vakaden/app
-        run: |
-          echo "Listing tags for $IMAGE_NAME..."
-          for tag in $(doctl registry repository list-tags $IMAGE_NAME --format Tag --no-header); do
-            echo "Deleting $IMAGE_NAME:$tag"
-            doctl registry repository delete-tag $IMAGE_NAME $tag -f
-          done
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Log in to DigitalOcean Container Registry
-        run: echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login $REGISTRY -u docker --password-stdin
-        env:
-          REGISTRY: registry.digitalocean.com/vakaden
-        
-      - name: Delete all tags from single repo
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Delete old API images
         run: |
-          IMAGE_NAME="registry.digitalocean.com/vakaden"
-          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep "^$IMAGE_NAME$")" ]; then
-            for tag in $(doctl registry repository list-tags $IMAGE_NAME --format Tag --no-header); do
-              echo "Deleting $IMAGE_NAME:$tag"
-              doctl registry repository delete-tag $IMAGE_NAME $tag -f
+          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep ^$API_IMAGE_NAME$)" ]; then
+            for digest in $(doctl registry repository list-tags $API_IMAGE_NAME --format Digest --no-header); do
+              echo "Deleting $API_IMAGE_NAME@$digest"
+              doctl registry repository delete-manifest $API_IMAGE_NAME $digest -f
             done
-          else
-            echo "Repository $IMAGE_NAME not found."
           fi
-        env:
-          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Build and push API
+      - name: Delete old Frontend images
         run: |
-          docker build -t $REGISTRY/$APP_IMAGE_NAME:api-${{ steps.set_version.outputs.version }} -f ./api/Dockerfile ./api
-          docker push $REGISTRY/$APP_IMAGE_NAME:api-${{ steps.set_version.outputs.version }}
+          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep ^$FRONTEND_IMAGE_NAME$)" ]; then
+            for digest in $(doctl registry repository list-tags $FRONTEND_IMAGE_NAME --format Digest --no-header); do
+              echo "Deleting $FRONTEND_IMAGE_NAME@$digest"
+              doctl registry repository delete-manifest $FRONTEND_IMAGE_NAME $digest -f
+            done
+          fi
 
-      - name: Build and push Frontend
+      - name: Build and push API image
         run: |
-          docker build -t $REGISTRY/$APP_IMAGE_NAME:frontend-${{ steps.set_version.outputs.version }} -f ./frontend/Dockerfile ./frontend
-          docker push $REGISTRY/$APP_IMAGE_NAME:frontend-${{ steps.set_version.outputs.version }}
+          IMAGE_TAG=${GITHUB_SHA::7}
+          docker build -t $REGISTRY/$API_IMAGE_NAME:$IMAGE_TAG ./api
+          docker push $REGISTRY/$API_IMAGE_NAME:$IMAGE_TAG
+
+      - name: Build and push Frontend image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::7}
+          docker build -t $REGISTRY/$FRONTEND_IMAGE_NAME:$IMAGE_TAG ./frontend
+          docker push $REGISTRY/$FRONTEND_IMAGE_NAME:$IMAGE_TAG
