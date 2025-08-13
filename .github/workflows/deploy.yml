@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["Build-and-Push"]  # This must exactly match the `name:` in the other workflow
+    workflows: ["Build-and-Push"]  
     types:
       - completed
       
