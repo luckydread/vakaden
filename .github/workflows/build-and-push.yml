@@ -27,4 +27,9 @@ jobs:
 
       - name: Remove all old images
         run: if [ ! -z "$(doctl registry repository list | grep "$(echo $REPO)")" ]; then doctl registry repository delete-manifest $(echo $REPO) $(doctl registry repository list-tags $(echo $REPO) | grep -o "sha.*") --force; else echo "No repository"; fi
-    
+
+      - name: Build and push API image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::7}-api
+          docker build -t ${{ env.REGISTRY }}/app:$IMAGE_TAG-api -f ./api/Dockerfile ./api
+          docker push ${{ env.REGISTRY }}/app:$IMAGE_TAG-api
