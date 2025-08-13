@@ -27,10 +27,16 @@ jobs:
       - name: Delete old images in repository
         run: |
           if [ ! -z "$(doctl registry repository list --format Name --no-header | grep ^$IMAGE_NAME$)" ]; then
-            for digest in $(doctl registry repository list-tags $IMAGE_NAME --format Digest --no-header); do
-              echo "Deleting $IMAGE_NAME@$digest"
-              doctl registry repository delete-manifest $IMAGE_NAME $digest -f
+          for digest in $(doctl registry repository list-tags $IMAGE_NAME --format Digest --no-header); do
+          if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
+                echo "Deleting $IMAGE_NAME@$digest"
+                doctl registry repository delete-manifest $IMAGE_NAME $digest -f
+              else
+                echo "Skipping empty digest"
+              fi
             done
+          else
+            echo "Repository $IMAGE_NAME not found."
           fi
 
       - name: Build and push API image
