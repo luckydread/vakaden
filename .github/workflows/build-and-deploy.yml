@@ -4,6 +4,13 @@ on:
   push:
     branches: [ "main" ]
 
+# Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version'
+        required: true
+
 env:
   REGISTRY: registry.digitalocean.com/vakaden
   APP_IMAGE_NAME: app  # Single repository for both API & frontend
