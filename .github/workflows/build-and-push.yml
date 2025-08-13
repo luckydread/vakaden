@@ -25,7 +25,7 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       
       - name: Garbage collect repository
-        run: doctl registry repository garbage-collect ${{ env.REGISTRY }}
+        run: doctl registry garbage-collection start ${{ env.REGISTRY }}
 
 
       - name: Build and push API image
