@@ -23,9 +23,17 @@ jobs:
 
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
-      
-      - name: List manifests
-        run: doctl registry repository list-manifests ${{ env.REGISTRY }}
-      
+
+      - name: Delete old images
+        run: |
+           for digest in $(doctl registry repository list-manifests ${{ env.REGISTRY }} --format Digest --no-header); do
+            if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
+              echo "Deleting ${{ env.REGISTRY }}@$digest"
+              doctl registry repository delete-manifest ${{ env.REGISTRY }} $digest -f
+            else
+              echo "Skipping empty digest"
+            fi
+           done
+
       #- name: Garbage collect repository
       #  run: doctl registry garbage-collection start --include-untagged-manifests --force ${{ env.REGISTRY }}
