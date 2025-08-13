@@ -27,9 +27,10 @@ jobs:
       - name: Garbage collect repository
         run: doctl registry repository garbage-collect ${{ env.REGISTRY }}
 
-      - name: Delete all manifests
-        run: |
-          doctl registry repository delete-manifest ${{ env.REGISTRY }} --all
+      - name: List manifests
+        run: doctl registry repository list-manifests ${{ env.REGISTRY }} --format Digest
+
+        
       - name: Build and push API image
         run: |
           IMAGE_TAG=${GITHUB_SHA::7}-api
