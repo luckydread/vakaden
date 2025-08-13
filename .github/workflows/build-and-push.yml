@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: "registry.digitalocean.com/vakaden"
+  REGISTRY: "vakaden"
   IMAGE_NAME: "app"  # single repository for both API and frontend
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Delete old images in repository
         run: |
-          REPO_NAME="registry.digitalocean.com/vakaden"
+          REPO_NAME="app"
 
           # Delete all manifests in the repository
           for digest in $(doctl registry repository list-tags $REPO_NAME --format Digest --no-header); do
