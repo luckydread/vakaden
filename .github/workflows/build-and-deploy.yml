@@ -21,7 +21,7 @@ jobs:
         run: echo "version=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_OUTPUT
 
       - name: Log in to DigitalOcean Container Registry
-        run: echo "${{ secrets.DOCR_ACCESS_TOKEN }}" | docker login $REGISTRY -u ${{ secrets.DOCR_USERNAME }} --password-stdin
+        run: doctl registry login
 
       - name: Build and push API
         run: |
