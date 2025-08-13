@@ -5,18 +5,20 @@ on:
     workflows: ["Build and Push Images"]
     types:
       - completed
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version'
-        required: false
+
+env:
+  REGISTRY: registry.digitalocean.com/vakaden
+  APP_IMAGE_NAME: app
 
 jobs:
   deploy:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-
     steps:
+      - name: Get build version from triggering workflow
+        id: get_version
+        run: echo "version=$(echo ${{ github.event.workflow_run.head_sha }} | head -c7)" >> $GITHUB_OUTPUT
+
       - name: Deploy on droplet via SSH
         uses: appleboy/ssh-action@v0.1.3
         with:
@@ -24,23 +26,23 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           script: |
-            set -e
-
-            REGISTRY=registry.digitalocean.com/vakaden
-            APP_IMAGE_NAME=app
-            VERSION=${{ github.event.workflow_run.head_sha || github.sha }}
-            VERSION=$(echo $VERSION | head -c7)
+            REGISTRY=${{ env.REGISTRY }}
+            APP_IMAGE_NAME=${{ env.APP_IMAGE_NAME }}
+            VERSION=${{ steps.get_version.outputs.version }}
 
             cd ~/vakaden
 
+            # Update .env for docker-compose
             echo "API_IMAGE=$REGISTRY/$APP_IMAGE_NAME:api-$VERSION" > .env
             echo "FRONTEND_IMAGE=$REGISTRY/$APP_IMAGE_NAME:frontend-$VERSION" >> .env
 
-            echo "== Pulling latest images =="
-            docker-compose -f docker-compose.prod.yml pull
+            # Pull latest images without using cache
+            docker-compose -f docker-compose.prod.yml pull --no-parallel --quiet || true
 
-            echo "== Starting containers in detached mode =="
+            # Run migrations if needed
+            docker-compose -f docker-compose.prod.yml run --rm api python manage.py migrate || true
+
+            # Restart app
             docker-compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            echo "== Deployment complete =="
-            exit 0
+            echo "✅ Deployed version $VERSION"

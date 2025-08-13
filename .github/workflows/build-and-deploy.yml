@@ -2,45 +2,33 @@ name: Build and Push Images
 
 on:
   push:
-    branches: [ "main" ]
-
-# Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version'
-        required: true
+    branches: [ main ]
 
 env:
   REGISTRY: registry.digitalocean.com/vakaden
-  APP_IMAGE_NAME: app  # Single repository for both API & frontend
+  APP_IMAGE_NAME: app
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Set version from commit SHA
+        id: set_version
+        run: echo "version=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_OUTPUT
 
-      - name: Login to DigitalOcean Container Registry
-        run: doctl registry login
+      - name: Log in to DigitalOcean Container Registry
+        run: echo "${{ secrets.DOCR_ACCESS_TOKEN }}" | docker login $REGISTRY -u ${{ secrets.DOCR_USERNAME }} --password-stdin
 
-      - name: Get short commit SHA
-        run: echo "SHORT_SHA=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_ENV
+      - name: Build and push API
+        run: |
+          docker build -t $REGISTRY/$APP_IMAGE_NAME:api-${{ steps.set_version.outputs.version }} -f ./api/Dockerfile ./api
+          docker push $REGISTRY/$APP_IMAGE_NAME:api-${{ steps.set_version.outputs.version }}
 
-      - name: Build API image
-        run: docker build -t $REGISTRY/$APP_IMAGE_NAME:api-${SHORT_SHA} -f ./api/Dockerfile ./api
-
-      - name: Build Frontend image
-        run: docker build -t $REGISTRY/$APP_IMAGE_NAME:frontend-${SHORT_SHA} -f ./frontend/Dockerfile ./frontend
-
-      - name: Push API image
-        run: docker push $REGISTRY/$APP_IMAGE_NAME:api-${SHORT_SHA}
-
-      - name: Push Frontend image
-        run: docker push $REGISTRY/$APP_IMAGE_NAME:frontend-${SHORT_SHA}
+      - name: Build and push Frontend
+        run: |
+          docker build -t $REGISTRY/$APP_IMAGE_NAME:frontend-${{ steps.set_version.outputs.version }} -f ./frontend/Dockerfile ./frontend
+          docker push $REGISTRY/$APP_IMAGE_NAME:frontend-${{ steps.set_version.outputs.version }}
