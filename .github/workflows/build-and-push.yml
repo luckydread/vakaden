@@ -27,16 +27,15 @@ jobs:
       - name: Delete old images in repository
         run: |
           REPO_NAME="app"
-
-          # Delete all manifests in the repository
-          for digest in $(doctl registry repository list-tags $REPO_NAME --format Digest --no-header); do
-            if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
-              echo "Deleting $REPO_NAME@$digest"
-              doctl registry repository delete-manifest $REPO_NAME $digest -f
-            else
-              echo "Skipping empty digest"
-            fi
+          for digest in $(doctl registry repository list-tags $REPO_NAME --registry $REGISTRY_NAME --format Digest --no-header); do
+          if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
+            echo "Deleting $REPO_NAME@$digest"
+            doctl registry repository delete-manifest $REPO_NAME $digest --registry $REGISTRY_NAME -f
+          else
+            echo "Skipping empty digest"
+          fi
           done
+
       - name: Build and push API image
         run: |
           IMAGE_TAG=${GITHUB_SHA::7}-api
