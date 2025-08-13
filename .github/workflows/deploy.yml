@@ -1,10 +1,8 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["Build and Push API + Frontend"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
 
 env:
   REGISTRY: registry.digitalocean.com/vakaden
