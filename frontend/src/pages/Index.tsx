@@ -21,7 +21,7 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <Building className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">Vakadeny</span>
+              <span className="text-xl font-bold text-gray-900">Vakadenisa</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link to="/login">
