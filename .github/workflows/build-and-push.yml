@@ -28,13 +28,13 @@ jobs:
         run: |
           REPO_NAME="app"
 
-          for digest in $(doctl registry repository list-tags $REPO_NAME --format Digest --no-header); do
+          for digest in $(doctl registry repository list-tags $REPO_NAME --registry $REGISTRY_NAME --format Digest --no-header); do
           if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
           echo "Deleting $REPO_NAME@$digest"
-          doctl registry repository delete-manifest $REPO_NAME $digest -f
+          doctl registry repository delete-manifest $REPO_NAME $digest --registry $REGISTRY_NAME -f
           else
-            echo "Skipping empty digest"
-          fi  
+          echo "Skipping empty digest"
+            fi  
           done
         
       - name: Build and push API image
