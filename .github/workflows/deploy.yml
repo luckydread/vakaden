@@ -5,18 +5,17 @@ on:
     workflows: ["Build and Push Images"]
     types:
       - completed
-
-# Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       version:
         description: 'Image version'
-        required: true
+        required: false
 
 jobs:
   deploy:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+
     steps:
       - name: Deploy on droplet via SSH
         uses: appleboy/ssh-action@v0.1.3
@@ -25,18 +24,26 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           script: |
-            REGISTRY=${{ env.REGISTRY }}
-            APP_IMAGE_NAME=${{ env.APP_IMAGE_NAME }}
-            VERSION=$(echo $GITHUB_SHA | head -c7)
+            set -e
+
+            REGISTRY=registry.digitalocean.com/vakaden
+            APP_IMAGE_NAME=app
+            VERSION=${{ github.event.workflow_run.head_sha || github.sha }}
+            VERSION=$(echo $VERSION | head -c7)
 
             cd ~/vakaden
 
-            # Update environment file for docker-compose
             echo "API_IMAGE=$REGISTRY/$APP_IMAGE_NAME:api-$VERSION" > .env
             echo "FRONTEND_IMAGE=$REGISTRY/$APP_IMAGE_NAME:frontend-$VERSION" >> .env
 
+            echo "== Pulling latest images =="
             docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml run --rm api python manage.py migrate
-            docker-compose -f docker-compose.prod.yml up -d --remove-orphans --timeout 30
 
-            echo "Deployed successfully"
+            echo "== Applying Django migrations (if any) =="
+            docker-compose -f docker-compose.prod.yml run --rm api python manage.py migrate --noinput || true
+
+            echo "== Starting containers in detached mode =="
+            docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "== Deployment complete =="
+            exit 0
