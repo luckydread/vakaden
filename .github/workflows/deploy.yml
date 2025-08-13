@@ -39,9 +39,6 @@ jobs:
             # Pull latest images without using cache
             docker-compose -f docker-compose.prod.yml pull --no-parallel --quiet || true
 
-            # Run migrations if needed
-            docker-compose -f docker-compose.prod.yml run --rm api python manage.py migrate || true
-
             # Restart app
             docker-compose -f docker-compose.prod.yml up -d --remove-orphans
 
