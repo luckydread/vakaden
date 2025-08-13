@@ -25,4 +25,4 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       
       - name: Garbage collect repository
-        run: doctl registry garbage-collection start --include-untagged-manifests ${{ env.REGISTRY }}
+        run: doctl registry garbage-collection start --include-untagged-manifests --force ${{ env.REGISTRY }}
