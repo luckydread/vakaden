@@ -17,7 +17,9 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Build container image
-        run: docker build -t $REGISTRY/$IMAGE_NAME:$(echo $GITHUB_SHA | head -c7) -f ./frontend/Dockerfile ./frontend
+        run:  docker build \
+          -t registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:$(echo $GITHUB_SHA | head -c7) \
+          -f ./frontend/Dockerfile ./frontend
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -31,6 +33,6 @@ jobs:
         run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete-manifest $(echo $IMAGE_NAME) $(doctl registry repository list-tags $(echo $IMAGE_NAME) | grep -o "sha.*") --force; else echo "No repository"; fi
 
       - name: Push image to DigitalOcean Container Registry
-        run: docker build -t $REGISTRY/$IMAGE_NAME:tag -f ./frontend/Dockerfile ./frontend
+        run: docker push registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:$(echo $GITHUB_SHA | head -c7)
 
         
