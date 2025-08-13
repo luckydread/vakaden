@@ -26,7 +26,7 @@ jobs:
 
       - name: Delete old images
         run: |
-           for digest in $(doctl registry repository list-manifests ${{ env.REGISTRY }} --format Digest --no-header); do
+           for digest in $(doctl registry repository list-manifests ${{ env.REGISTRY }}); do
             if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
               echo "Deleting ${{ env.REGISTRY }}@$digest"
               doctl registry repository delete-manifest ${{ env.REGISTRY }} $digest -f
