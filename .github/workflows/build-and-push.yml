@@ -28,7 +28,7 @@ jobs:
         run: doctl registry repository garbage-collect ${{ env.REGISTRY }}
 
       - name: List manifests
-        run: doctl registry repository list-manifests ${{ env.REGISTRY }} --format Digest,Tags
+        run: doctl registry repository list-manifests ${{ env.REGISTRY }} Digest,Tags
 
 
       - name: Build and push API image
