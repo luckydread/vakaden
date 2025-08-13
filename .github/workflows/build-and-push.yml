@@ -2,7 +2,7 @@ name: Build and Push API + Frontend
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 env:
