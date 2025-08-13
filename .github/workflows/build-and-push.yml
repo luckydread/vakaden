@@ -28,9 +28,9 @@ jobs:
         run: doctl registry repository garbage-collect ${{ env.REGISTRY }}
 
       - name: List manifests
-        run: doctl registry repository list-manifests ${{ env.REGISTRY }} --format Digest
+        run: doctl registry repository list-manifests ${{ env.REGISTRY }} --format Digest Tags
 
-        
+
       - name: Build and push API image
         run: |
           IMAGE_TAG=${GITHUB_SHA::7}-api
