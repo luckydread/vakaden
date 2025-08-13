@@ -27,6 +27,15 @@ jobs:
       - name: Garbage collect repository
         run: doctl registry garbage-collection start -f ${{ env.REGISTRY }}
 
+      - name: Delete all manifests
+        run: |
+          # Get all manifests
+          for digest in $(doctl registry repository list-manifests vakaden/app --format "{{.Digest}}" --no-header); do
+            if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
+              echo "Deleting manifest $digest"
+              doctl registry repository delete-manifest vakaden/app $digest -f
+            fi
+          done
 
       - name: Build and push API image
         run: |
