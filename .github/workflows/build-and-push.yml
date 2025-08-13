@@ -4,15 +4,10 @@ on:
   push:
     branches: [ master ]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version'
-        required: true
 
 env:
   REGISTRY: "registry.digitalocean.com/vakaden"
-  API_IMAGE_NAME: "app-api"
-  FRONTEND_IMAGE_NAME: "app-frontend"
+  IMAGE_NAME: "app"  # single repository for both API and frontend
 
 jobs:
   build_and_push:
@@ -29,32 +24,23 @@ jobs:
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
 
-      - name: Delete old API images
+      - name: Delete old images in repository
         run: |
-          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep ^$API_IMAGE_NAME$)" ]; then
-            for digest in $(doctl registry repository list-tags $API_IMAGE_NAME --format Digest --no-header); do
-              echo "Deleting $API_IMAGE_NAME@$digest"
-              doctl registry repository delete-manifest $API_IMAGE_NAME $digest -f
-            done
-          fi
-
-      - name: Delete old Frontend images
-        run: |
-          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep ^$FRONTEND_IMAGE_NAME$)" ]; then
-            for digest in $(doctl registry repository list-tags $FRONTEND_IMAGE_NAME --format Digest --no-header); do
-              echo "Deleting $FRONTEND_IMAGE_NAME@$digest"
-              doctl registry repository delete-manifest $FRONTEND_IMAGE_NAME $digest -f
+          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep ^$IMAGE_NAME$)" ]; then
+            for digest in $(doctl registry repository list-tags $IMAGE_NAME --format Digest --no-header); do
+              echo "Deleting $IMAGE_NAME@$digest"
+              doctl registry repository delete-manifest $IMAGE_NAME $digest -f
             done
           fi
 
       - name: Build and push API image
         run: |
-          IMAGE_TAG=${GITHUB_SHA::7}
-          docker build -t $REGISTRY/$API_IMAGE_NAME:$IMAGE_TAG ./api
-          docker push $REGISTRY/$API_IMAGE_NAME:$IMAGE_TAG
+          IMAGE_TAG=${GITHUB_SHA::7}-api
+          docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG ./api
+          docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
       - name: Build and push Frontend image
         run: |
-          IMAGE_TAG=${GITHUB_SHA::7}
-          docker build -t $REGISTRY/$FRONTEND_IMAGE_NAME:$IMAGE_TAG ./frontend
-          docker push $REGISTRY/$FRONTEND_IMAGE_NAME:$IMAGE_TAG
+          IMAGE_TAG=${GITHUB_SHA::7}-frontend
+          docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG ./frontend
+          docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
