@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: "registry.digitalocean.com/vakaden"
-  IMAGE_NAME: "app"  # single repository for both API and frontend
+  IMAGE_NAME: "registry.digitalocean.com/vakaden"  # single repository for both API and frontend
 
 jobs:
   build_and_push:
@@ -29,7 +29,7 @@ jobs:
           REPO_NAME="app"  # replace with your repository name
 
           # Delete all manifests in the repository
-          for digest in $(doctl registry repository list-tags $REPO_NAME --format Digest --no-header); do
+          for digest in $(doctl registry repository list-tags $REGISTRY --format Digest --no-header); do
             if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
               echo "Deleting $REGISTRY@$digest"
               doctl registry repository delete-manifest $REGISTRY $digest -f
