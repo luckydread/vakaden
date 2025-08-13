@@ -20,6 +20,12 @@ jobs:
         id: set_version
         run: echo "version=$(echo $GITHUB_SHA | head -c7)" >> $GITHUB_OUTPUT
 
+      - name: Install doctl
+        run: |
+          curl -sL https://github.com/digitalocean/doctl/releases/latest/download/doctl-$(uname | tr '[:upper:]' '[:lower:]')-amd64.tar.gz \
+            | tar -xzv
+          sudo mv doctl /usr/local/bin
+
       - name: Log in to DigitalOcean Container Registry
         run: echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login $REGISTRY -u docker --password-stdin
         env:
