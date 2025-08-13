@@ -24,5 +24,8 @@ jobs:
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
       
-      - name: Garbage collect repository
-        run: doctl registry garbage-collection start --include-untagged-manifests --force ${{ env.REGISTRY }}
+      - name: List manifests
+        run: doctl registry repository list-manifests ${{ env.REGISTRY }}
+      
+      #- name: Garbage collect repository
+      #  run: doctl registry garbage-collection start --include-untagged-manifests --force ${{ env.REGISTRY }}
