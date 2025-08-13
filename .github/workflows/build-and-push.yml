@@ -29,26 +29,7 @@ jobs:
 
       - name: Delete all manifests
         run: |
-          # Get all manifests and delete them
-          MANIFESTS=$(doctl registry repository list-manifests ${{ env.REGISTRY }} --format "{{.Digest}}" --no-header)
-          if [ -n "$MANIFESTS" ]; then
-            echo "Found manifests:"
-            echo "$MANIFESTS"
-            
-            # Convert newline-separated list to space-separated
-            MANIFESTS=$(echo "$MANIFESTS" | tr '\n' ' ')
-            
-            # Delete each manifest
-            for digest in $MANIFESTS; do
-              if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
-                echo "Deleting manifest $digest"
-                doctl registry repository delete-manifest ${{ env.REGISTRY }} $digest -f
-              fi
-            done
-          else
-            echo "No manifests found"
-          fi
-
+          doctl registry repository delete-manifest ${{ env.REGISTRY }} --all
       - name: Build and push API image
         run: |
           IMAGE_TAG=${GITHUB_SHA::7}-api
