@@ -24,6 +24,20 @@ jobs:
         run: echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login $REGISTRY -u docker --password-stdin
         env:
           REGISTRY: registry.digitalocean.com/vakaden
+        
+      - name: Delete all tags from single repo
+        run: |
+          IMAGE_NAME="registry.digitalocean.com/vakaden"
+          if [ ! -z "$(doctl registry repository list --format Name --no-header | grep "^$IMAGE_NAME$")" ]; then
+            for tag in $(doctl registry repository list-tags $IMAGE_NAME --format Tag --no-header); do
+              echo "Deleting $IMAGE_NAME:$tag"
+              doctl registry repository delete-tag $IMAGE_NAME $tag -f
+            done
+          else
+            echo "Repository $IMAGE_NAME not found."
+          fi
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Build and push API
         run: |
