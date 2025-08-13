@@ -16,9 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
-      - name: Build container image
+      - name: Build frontend container image
         run:  docker build -t registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:$(echo $GITHUB_SHA | head -c7) -f ./frontend/Dockerfile ./frontend
 
+      - name: Build api container image
+        run:  docker build -t registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:$(echo $GITHUB_SHA | head -c7) -f ./api/Dockerfile ./api
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
