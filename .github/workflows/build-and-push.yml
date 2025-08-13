@@ -23,24 +23,10 @@ jobs:
 
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
+      
+      - name: Garbage collect repository
+        run: doctl registry repository garbage-collect ${{ env.REGISTRY }}
 
-      - name: Delete old images in repository
-        run: |
-          # Delete all tags
-          for tag in $(doctl registry repository list-tags ${{ env.REGISTRY }}/app --format "{{.Tag}}" --no-header); do
-            if [ -n "$tag" ]; then
-              echo "Deleting ${{ env.REGISTRY }}/app:$tag"
-              doctl registry repository delete-tag ${{ env.REGISTRY }}/app $tag -f
-            fi
-          done
-          
-          # Delete all manifests
-          for digest in $(doctl registry repository list-tags ${{ env.REGISTRY }}/app --format "{{.Digest}}" --no-header); do
-            if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
-              echo "Deleting ${{ env.REGISTRY }}/app@$digest"
-              doctl registry repository delete-manifest ${{ env.REGISTRY }}/app $digest -f
-            fi
-          done
 
       - name: Build and push API image
         run: |
