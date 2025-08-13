@@ -1,8 +1,10 @@
 name: Deploy
 
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Build and Push"]  # This must exactly match the `name:` in the other workflow
+    types:
+      - completed
 
 env:
   REGISTRY: registry.digitalocean.com/vakaden
@@ -11,7 +13,7 @@ env:
 jobs:
   deploy:
     if: github.event.workflow_run.conclusion == 'success'
-    needs: build_and_push
+    
     runs-on: ubuntu-latest
     steps:
       - name: Get build version from triggering workflow

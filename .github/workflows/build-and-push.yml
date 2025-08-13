@@ -1,4 +1,4 @@
-name: Build and Push API + Frontend
+name: Build-and-Push
 
 on:
   push:
