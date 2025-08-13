@@ -24,12 +24,32 @@ jobs:
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
       
-      - name: Delete all manifests
+      - name: Delete all tags and manifests
         run: |
-          # Get all manifests and delete them
+          # Get all tags including "none"
+          TAGS=$(doctl registry repository list-tags vakaden/app --format "{{.Tag}}" --no-header)
+          if [ -n "$TAGS" ]; then
+            echo "Found tags:"
+            echo "$TAGS"
+            
+            # Convert newline-separated list to space-separated
+            TAGS=$(echo "$TAGS" | tr '\n' ' ')
+            
+            # Delete each tag, including "none"
+            for tag in $TAGS; do
+              if [ -n "$tag" ]; then
+                echo "Deleting tag $tag"
+                doctl registry repository delete-tag vakaden/app $tag -f
+              fi
+            done
+          else
+            echo "No tags found"
+          fi
+
+          # Then delete all remaining manifests
           MANIFESTS=$(doctl registry repository list-manifests vakaden/app --format "{{.Digest}}" --no-header)
           if [ -n "$MANIFESTS" ]; then
-            echo "Found manifests:"
+            echo "Found remaining manifests:"
             echo "$MANIFESTS"
             
             # Convert newline-separated list to space-separated
@@ -38,26 +58,16 @@ jobs:
             # Delete each manifest
             for digest in $MANIFESTS; do
               if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
-                echo "Deleting manifest $digest"
+                echo "Deleting remaining manifest $digest"
                 doctl registry repository delete-manifest vakaden/app $digest -f
               fi
             done
           else
-            echo "No manifests found"
+            echo "No remaining manifests found"
           fi
 
       - name: Garbage collect repository
         run: doctl registry garbage-collection start -f ${{ env.REGISTRY }}
-
-      - name: Delete all manifests
-        run: |
-          # Get all manifests
-          for digest in $(doctl registry repository list-manifests vakaden/app --format "{{.Digest}}" --no-header); do
-            if [ -n "$digest" ] && [ "$digest" != "<nil>" ]; then
-              echo "Deleting manifest $digest"
-              doctl registry repository delete-manifest vakaden/app $digest -f
-            fi
-          done
 
       - name: Build and push API image
         run: |
