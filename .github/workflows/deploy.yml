@@ -39,9 +39,11 @@ jobs:
             echo "FRONTEND_IMAGE=$REGISTRY/$APP_IMAGE_NAME:frontend-$VERSION" >> .env
 
             # Pull latest images without using cache
-            docker-compose -f docker-compose.prod.yml pull --no-parallel --quiet || true
+
+            docker compose -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
 
             # Restart app
-            docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
+
 
             echo "✅ Deployed version $VERSION"
