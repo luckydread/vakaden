@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["Build-and-Push"]
+    workflows: ["Build-and-Push"]  
     types:
       - completed
 
@@ -16,33 +16,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Get the version from the triggering workflow
-      - name: Get build version
+      - name: Get build version from triggering workflow
         id: get_version
         run: echo "version=$(echo ${{ github.event.workflow_run.head_sha }} | head -c7)" >> $GITHUB_OUTPUT
 
-      # Checkout repo to access docker-compose and api.env
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Generate .env for deployment
-      - name: Generate .env
+      - name: Generate .env for deploy
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           echo "API_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:api-$VERSION" > .env
           echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:frontend-$VERSION" >> .env
 
-      # Ensure remote folder exists
-      - name: Ensure remote folder
+      - name: Ensure remote folder exists
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
-          script: mkdir -p ~/vakaden
+          script: |
+            mkdir -p ~/vakaden
 
-      # Copy docker-compose, .env, and api.env
-      - name: Copy deployment files
+      - name: Copy docker-compose and env files
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -54,8 +50,7 @@ jobs:
             api/api.env
           target: "~/vakaden/"
 
-      # Deploy on the droplet
-      - name: Deploy containers
+      - name: Deploy on droplet via SSH
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.HOST }}
@@ -67,8 +62,10 @@ jobs:
             # Optional: remove old unused images
             docker image prune -af || true
 
-            # Pull latest images using .env
+            # Pull latest images using the .env
             docker compose --env-file .env -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
 
             # Restart app with updated images
-            docker compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orpha
+            docker compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "✅ Deployed version successfully"
