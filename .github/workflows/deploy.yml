@@ -29,6 +29,12 @@ jobs:
           echo "API_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:api-$VERSION" > .env
           echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:frontend-$VERSION" >> .env
 
+      - name: Generate api.env
+        run: |
+          mkdir -p api
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > api/api.env
+          echo "OTHER_API_VAR=value" >> api/api.env
+
       - name: Ensure remote folder exists
         uses: appleboy/ssh-action@v0.1.3
         with:
