@@ -9,7 +9,7 @@ To run the project do the following:
 4. Run "sudo docker logs <container_name> --tail 50" to check container logs
 5. Run "sudo docker ps -a" to check which containers are running
 
-
+##########################################
 Deployment
 
 1. Push to main branch will automatically deploy to droplet
