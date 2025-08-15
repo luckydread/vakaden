@@ -31,13 +31,21 @@ jobs:
           script: |
             mkdir -p ~/vakaden
 
-      - name: Copy docker-compose file
+      - name: Generate .env for deploy
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          echo "API_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:api-$VERSION" > .env
+          echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:frontend-$VERSION" >> .env
+
+      - name: Copy docker-compose and .env files
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
-          source: "docker-compose.prod.yml"
+          source: |
+            docker-compose.prod.yml
+            .env
           target: "~/vakaden/"
 
       - name: Deploy on droplet via SSH
@@ -47,23 +55,15 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           script: |
-            REGISTRY=${{ env.REGISTRY }}
-            APP_IMAGE_NAME=${{ env.APP_IMAGE_NAME }}
-            VERSION=${{ steps.get_version.outputs.version }}
-
             cd ~/vakaden
-
-            # Update .env with latest images
-            echo "API_IMAGE=$REGISTRY/$APP_IMAGE_NAME:api-$VERSION" > .env
-            echo "FRONTEND_IMAGE=$REGISTRY/$APP_IMAGE_NAME:frontend-$VERSION" >> .env
 
             # Optional: remove old unused images
             docker image prune -af || true
 
-            # Pull latest images using .env
+            # Pull latest images using the .env
             docker compose --env-file .env -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
 
             # Restart app with updated images
             docker compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
 
-            echo "✅ Deployed version $VERSION"
+            echo "✅ Deployed version successfully"
