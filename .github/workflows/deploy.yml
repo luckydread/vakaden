@@ -51,7 +51,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
-          source: "docker-compose.prod.yml,.env,api/api.env"
+          source: "docker-compose.prod.yml,.env"
           target: "~/vakaden/"
           strip_components: 0
 
@@ -68,9 +68,9 @@ jobs:
             docker image prune -af || true
 
             # Pull latest images using the .env
-            docker compose --env-file .env -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
+            docker-compose --env-file .env -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
 
             # Restart app with updated images
-            docker compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
+            docker-compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
 
             echo "✅ Deployed version successfully"
