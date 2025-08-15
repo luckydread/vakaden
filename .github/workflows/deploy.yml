@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           source: "docker-compose.prod.yml"
-          target: "~/vakaden/"
+          target: "~/vakaden/docker-compose.prod.yml"
 
       - name: Deploy on droplet via SSH
         uses: appleboy/ssh-action@v0.1.3
@@ -49,10 +49,7 @@ jobs:
             echo "API_IMAGE=$REGISTRY/$APP_IMAGE_NAME:api-$VERSION" > .env
             echo "FRONTEND_IMAGE=$REGISTRY/$APP_IMAGE_NAME:frontend-$VERSION" >> .env
 
-            # Pull latest images
-            docker compose -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
-
-            # Restart app
-            docker compose -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose --env-file .env -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
+            docker compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
 
             echo "✅ Deployed version $VERSION"
