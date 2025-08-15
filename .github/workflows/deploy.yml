@@ -22,6 +22,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Generate .env for deploy
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          echo "API_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:api-$VERSION" > .env
+          echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:frontend-$VERSION" >> .env
+
       - name: Ensure remote folder exists
         uses: appleboy/ssh-action@v0.1.3
         with:
@@ -30,12 +36,6 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           script: |
             mkdir -p ~/vakaden
-
-      - name: Generate .env for deploy
-        run: |
-          VERSION=${{ steps.get_version.outputs.version }}
-          echo "API_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:api-$VERSION" > .env
-          echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:frontend-$VERSION" >> .env
 
       - name: Copy docker-compose and .env files
         uses: appleboy/scp-action@master
