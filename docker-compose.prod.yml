@@ -1,14 +1,21 @@
 version: "3.9"
+<<<<<<< HEAD
 
 volumes:
   sqlite_data:
+=======
+>>>>>>> 01928a69dd5fa73d8f42e201a6a0d5e665e1cc27
 
 services:
   api:
     image: ${API_IMAGE}
     working_dir: /app
     volumes:
+<<<<<<< HEAD
       - sqlite_data:/app     # mount the whole /app directory to persist db.sqlite3
+=======
+      - sqlite_data:/app/db.sqlite3   # persist db.sqlite3 in a named volume
+>>>>>>> 01928a69dd5fa73d8f42e201a6a0d5e665e1cc27
     ports:
       - "8000:8000"
     restart: always
@@ -19,3 +26,8 @@ services:
       - "80:80"
     restart: always
 
+<<<<<<< HEAD
+=======
+volumes:
+  sqlite_data:/app/db.sqlite3
+>>>>>>> 01928a69dd5fa73d8f42e201a6a0d5e665e1cc27
