@@ -3,6 +3,9 @@ version: "3.9"
 volumes:
   sqlite_data:
 
+volumes:
+  - ./certbot_challenges:/var/www/certbot
+
 services:
   api:
     image: ${API_IMAGE}

@@ -156,7 +156,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['*']
-CORS_ALLOW_ORIGINS = ['http://localhost','http://0.0.0.0','http://localhost:8000','http://127.0.0.1']
+CORS_ALLOW_ORIGINS = ['http://localhost','http://0.0.0.0','http://localhost:8000','http://127.0.0.1','http://138.68.79.101','https://vakaden.com','https://www.vakaden.com']
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
