@@ -1,24 +1,35 @@
 version: "3.9"
 
-volumes:
-  sqlite_data:
-  
-volumes:
-  - ./certbot/www:/var/www/certbot
-  - ./certbot/conf:/etc/letsencrypt
-
 services:
+  frontend:
+    image: nginx:1.28-alpine
+    container_name: vakaden_frontend
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./frontend/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    restart: always
+
   api:
     image: ${API_IMAGE}
+    container_name: vakaden_api
     working_dir: /app
     volumes:
-      - sqlite_data:/app   # persist db.sqlite3 in a named volume
+      - ./db.sqlite3:/app/db.sqlite3
     ports:
       - "8000:8000"
     restart: always
 
-  frontend:
-    image: ${FRONTEND_IMAGE}
-    ports:
-      - "80:80"
-    restart: always
+  certbot:
+    image: certbot/certbot
+    container_name: vakaden_certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 12h & wait $${!}; certbot renew --webroot -w /var/www/certbot; done'"
