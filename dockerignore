@@ -1,0 +1,2 @@
+# Ignore Certbot certificates
+certbot/
