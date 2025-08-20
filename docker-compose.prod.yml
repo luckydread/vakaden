@@ -19,7 +19,7 @@ services:
     image: registry.digitalocean.com/vakaden/app:${API_TAG}
     container_name: vakaden_api
     volumes:
-      - ./api/db.sqlite3:/app/db.sqlite3
+      - ~/vakaden/api/api_data/db.sqlite3:/app/db.sqlite3
     expose:
       - "8000"
     restart: always
