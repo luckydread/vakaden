@@ -2,13 +2,13 @@ version: "3.9"
 
 services:
   api:
-    image: registry.digitalocean.com/vakaden/api:${TAG}
+    image: registry.digitalocean.com/vakaden/app:${API_TAG}
     restart: always
     expose:
       - "8000"
 
   web:
-    image: registry.digitalocean.com/vakaden/web:${TAG}
+    image: registry.digitalocean.com/vakaden/app:${FRONTEND_TAG}
     restart: always
     ports:
       - "80:80"

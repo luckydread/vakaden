@@ -26,10 +26,9 @@ jobs:
               cd ~/vakaden || exit 1
               echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
              
-             sed -i 's/^FRONTEND_TAG=.*/FRONTEND_TAG=frontend-latest/' .env
-             sed -i 's/^API_TAG=.*/API_TAG=api-latest/' .env
+             export $(grep -v '^#' .env | xargs)
 
-             cat .env
+             
              docker-compose -f docker-compose.prod.yml config | grep image
             
               docker-compose -f docker-compose.prod.yml pull
