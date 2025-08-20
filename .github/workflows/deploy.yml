@@ -25,9 +25,15 @@ jobs:
             ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
               cd ~/vakaden || exit 1
               echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
-              # Pull and start containers with environment variables
-              echo "FRONTEND_TAG=frontend-latest" > .env 
-              echo "API_TAG=api-latest" >> .env 
+             
+             sed -i 's/^FRONTEND_TAG=.*/FRONTEND_TAG=frontend-latest/' .env
+             sed -i 's/^API_TAG=.*/API_TAG=api-latest/' .env
+
+             cat .env
+             docker-compose -f docker-compose.prod.yml config | grep image
+            
+              docker-compose -f docker-compose.prod.yml pull
+              
               docker-compose -f docker-compose.prod.yml up -d --remove-orphans
               
               docker system prune -af
