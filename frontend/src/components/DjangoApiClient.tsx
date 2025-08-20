@@ -29,9 +29,10 @@ export const makeDjangoApiRequest = async ({
     };
 
    const fullUrl = url.startsWith('/') ? url : `/${url}`;
+   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
     const response = await axios.request({
-      url: 'http://0.0.0.0:8000' + fullUrl,
+      url: API_BASE_URL + fullUrl,
       method,
       data,
       headers: {
