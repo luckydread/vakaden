@@ -24,15 +24,15 @@ jobs:
       - name: Build and push frontend
         run: |
           FRONTEND_TAG="frontend-latest"
-          docker build -t registry.digitalocean.com/vakaden/app:$FRONTEND_TAG ./frontend
-          docker push registry.digitalocean.com/vakaden/app:$FRONTEND_TAG
+          docker build -t registry.digitalocean.com/vakadeni/app:$FRONTEND_TAG ./frontend
+          docker push registry.digitalocean.com/vakadeni/app:$FRONTEND_TAG
           echo "frontend-tag=$FRONTEND_TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push API
         run: |
           API_TAG="api-latest"
-          docker build -t registry.digitalocean.com/vakaden/app:$API_TAG ./api
-          docker push registry.digitalocean.com/vakaden/app:$API_TAG
+          docker build -t registry.digitalocean.com/vakadeni/app:$API_TAG ./api
+          docker push registry.digitalocean.com/vakadeni/app:$API_TAG
           echo "api-tag=$API_TAG" >> $GITHUB_OUTPUT
 
 
