@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["Build-and-Push"]  
+    workflows: ["Build-and-Push"]
     types:
       - completed
 
@@ -17,18 +17,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSHKEY }}
-      
+
       - name: Deploy on Droplet
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
             cd ~/vakaden || exit 1
-            echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin
+            echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
             docker-compose pull
             docker-compose up -d --remove-orphans
             docker system prune -af
-          EOF
+          "
