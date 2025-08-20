@@ -1,76 +1,30 @@
-name: Deploy
+name: Deploy to Droplet
 
 on:
-  workflow_run:
-    workflows: ["Build-and-Push"]  
-    types:
-      - completed
-
-env:
-  REGISTRY: registry.digitalocean.com/vakaden
-  APP_IMAGE_NAME: app
+  workflow_dispatch:
+  push:
+    branches:
+      - main   # or your deploy branch
 
 jobs:
   deploy:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    steps:
-      - name: Get build version from triggering workflow
-        id: get_version
-        run: echo "version=$(echo ${{ github.event.workflow_run.head_sha }} | head -c7)" >> $GITHUB_OUTPUT
 
-      - name: Checkout code
+    steps:
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Prepare files for deployment
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH }}
+
+      - name: Deploy on Droplet
         run: |
-          # Create necessary directories
-          mkdir -p api
-          
-          # Create .env file
-          VERSION=${{ steps.get_version.outputs.version }}
-          echo "API_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:api-$VERSION" > .env
-          echo "FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:frontend-$VERSION" >> .env
-          
-          # Create api.env with required variables
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > api/api.env
-          echo "OTHER_API_VAR=value" >> api/api.env
-
-      - name: Ensure remote folder exists
-        uses: appleboy/ssh-action@v0.1.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSHKEY }}
-          script: |
-            mkdir -p ~/vakaden
-
-      - name: Copy files to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSHKEY }}
-          source: "docker-compose.prod.yml,.env"
-          target: "~/vakaden/"
-          strip_components: 0
-
-      - name: Deploy on droplet via SSH
-        uses: appleboy/ssh-action@v0.1.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSHKEY }}
-          script: |
-            cd ~/vakaden
-
-            # Optional: remove old unused images
-            docker image prune -af || true
-
-            # Pull latest images using the .env
-            docker-compose --env-file .env -p vakaden -f docker-compose.prod.yml pull --no-parallel --quiet
-
-            # Restart app with updated images
-            docker-compose --env-file .env -p vakaden -f docker-compose.prod.yml up -d --remove-orphans
-
-            echo "✅ Deployed version successfully"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+            cd /home/${{ secrets.USERNAME }}/vakaden  # path to your project
+            docker login registry.digitalocean.com -u doctl --password-stdin <<< "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}"
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker system prune -af
+          EOF

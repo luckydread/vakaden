@@ -2,13 +2,12 @@ version: '3.9'
  
 services:
   frontend:
-    image: nginx:1.28-alpine
+    image: registry.digitalocean.com/vakaden/frontend:latest
     container_name: vakaden_frontend
     volumes:
       - ./nginx:/etc/nginx/conf.d 
       - ./certbot/www:/var/www/certbot
       - ./certbot/conf:/etc/letsencrypt
-      - ./frontend/dist:/usr/share/nginx/html:ro
  
     ports:
       - "80:80"
@@ -18,7 +17,7 @@ services:
     restart: always
 
   api:
-    image: ${API_IMAGE}
+    image: registry.digitalocean.com/vakaden/api:latest
     container_name: vakaden_api
     volumes:
       - ./api/db.sqlite3:/app/db.sqlite3
