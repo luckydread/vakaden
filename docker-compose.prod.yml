@@ -2,7 +2,7 @@ version: '3.9'
  
 services:
   frontend:
-    image: registry.digitalocean.com/vakaden/frontend:latest
+    image: registry.digitalocean.com/vakaden/app:frontend-latest
     container_name: vakaden_frontend
     volumes:
       - ./nginx:/etc/nginx/conf.d 
@@ -17,7 +17,7 @@ services:
     restart: always
 
   api:
-    image: registry.digitalocean.com/vakaden/api:latest
+    image: registry.digitalocean.com/vakaden/app:api-latest
     container_name: vakaden_api
     volumes:
       - ./api/db.sqlite3:/app/db.sqlite3
