@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   frontend:
-    image: registry.digitalocean.com/vakaden/app:${FRONTEND_TAG}
+    image: registry.digitalocean.com/vakaden/app:frontend-latest
     container_name: vakaden_frontend
     volumes:
       - ./nginx:/etc/nginx/conf.d 
@@ -16,10 +16,11 @@ services:
     restart: always
 
   api:
-    image: registry.digitalocean.com/vakaden/app:${API_TAG}
+    image: registry.digitalocean.com/vakaden/app:api-latest
     container_name: vakaden_api
     volumes:
-      - ~/vakaden/api/api_data/db.sqlite3:/app/db.sqlite3
+      # Persist SQLite database in a host folder
+      - ./api_data/db.sqlite3:/app/db.sqlite3
     expose:
       - "8000"
     restart: always
