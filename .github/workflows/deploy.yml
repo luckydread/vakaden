@@ -23,12 +23,20 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
-              cd ~/vakaden || exit 1
-              echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
+            cd ~/vakaden || exit 1
+            echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
+
+            # Make sure env vars are loaded
+            set -a
+            source .env
+            set +a
+
+            # Debug: check substitution
+            docker-compose -f docker-compose.prod.yml config | grep image
               
-              # Pull the specific images we just built
-              docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:frontend-latest
-              docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:api-latest
+            # Pull the specific images we just built
+            docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:frontend-latest
+            docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:api-latest
 
               # Start the services
               docker-compose -f docker-compose.prod.yml up -d --remove-orphans
