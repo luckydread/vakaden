@@ -25,9 +25,9 @@ jobs:
       
       - name: Deploy on Droplet
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
-            cd ~/vakaden
-            docker login registry.digitalocean.com -u doctl --password-stdin <<< "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
+            cd ~/vakaden || exit 1
+            echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin
             docker-compose pull
             docker-compose up -d --remove-orphans
             docker system prune -af
