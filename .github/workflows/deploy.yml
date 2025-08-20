@@ -25,9 +25,14 @@ jobs:
             ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
               cd ~/vakaden || exit 1
               echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
-              export FRONTEND_TAG=frontend-latest
-              export API_TAG=api-latest
+              # Pull and start containers with environment variables
+              FRONTEND_TAG=frontend-latest \
+              API_TAG=api-latest \
               docker-compose -f docker-compose.prod.yml pull
+              
+              FRONTEND_TAG=frontend-latest \
+              API_TAG=api-latest \
               docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+              
               docker system prune -af
             "
