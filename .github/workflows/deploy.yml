@@ -25,15 +25,14 @@ jobs:
             ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
               cd ~/vakaden || exit 1
               echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
-             
-             export $(grep -v '^#' .env | xargs)
-
-             
-             docker-compose -f docker-compose.prod.yml config | grep image
-            
-              docker-compose -f docker-compose.prod.yml pull
               
+              # Pull the specific images we just built
+              docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:frontend-latest
+              docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:api-latest
+
+              # Start the services
               docker-compose -f docker-compose.prod.yml up -d --remove-orphans
               
+              # Clean up
               docker system prune -af
             "
