@@ -1,24 +1,28 @@
-name: Deploy to Droplet
+name: Deploy
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main   # or your deploy branch
+  workflow_run:
+    workflows: ["Build-and-Push"]  
+    types:
+      - completed
+
+env:
+  REGISTRY: registry.digitalocean.com/vakaden
+  APP_IMAGE_NAME: app
 
 jobs:
   deploy:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
-
+      
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ secrets.SSH }}
-
+          ssh-private-key: ${{ secrets.SSHKEY }}
+      
       - name: Deploy on Droplet
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
