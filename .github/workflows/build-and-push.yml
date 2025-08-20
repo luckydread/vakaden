@@ -1,38 +1,22 @@
-name: Build-and-Push
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-env:
-  REGISTRY: "vakaden"
-  IMAGE_NAME: "app"  # Your container name
-
 jobs:
-  build_and_push:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Build frontend container image
-        run:  docker build -t registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:frontend-latest -f ./frontend/Dockerfile ./frontend
+      - uses: actions/checkout@v3
 
-      - name: Build api container image
-        run:  docker build -t registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:api-latest -f ./api/Dockerfile ./api
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-    
-      - name: Log in to DigitalOcean Container Registry with short-lived credentials
-        run: doctl registry login --expiry-seconds 600
-      
-      - name: Push frontend image
-        run: docker push registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:frontend-latest
+      - name: Build and push frontend
+        run: |
+          FRONTEND_TAG="frontend-latest"
+          docker build -t registry.digitalocean.com/vakaden/app:$FRONTEND_TAG ./frontend
+          docker push registry.digitalocean.com/vakaden/app:$FRONTEND_TAG
+          echo "frontend-tag=$FRONTEND_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push api image to DigitalOcean Container Registry
-        run: docker push registry.digitalocean.com/$REGISTRY/$IMAGE_NAME:api-latest
-        
+      - name: Build and push API
+        run: |
+          API_TAG="api-latest"
+          docker build -t registry.digitalocean.com/vakaden/app:$API_TAG ./api
+          docker push registry.digitalocean.com/vakaden/app:$API_TAG
+          echo "api-tag=$API_TAG" >> $GITHUB_OUTPUT
