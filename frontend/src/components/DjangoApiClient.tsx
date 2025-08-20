@@ -28,11 +28,17 @@ export const makeDjangoApiRequest = async ({
       'Authorization': `Bearer ${accessToken}`
     };
 
-   const fullUrl = url.startsWith('/') ? url : `/${url}`;
-   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+    // Ensure the URL starts with a slash
+    const endpoint = url.startsWith('/') ? url : `/${url}`;
+    
+    // Get the base URL from environment variables
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+    
+    // Construct the full URL, ensuring no double slashes
+    const fullUrl = `${API_BASE_URL.replace(/\/+$/, '')}${endpoint}`;
 
     const response = await axios.request({
-      url: API_BASE_URL + fullUrl,
+      url: fullUrl,
       method,
       data,
       headers: {
