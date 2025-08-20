@@ -7,8 +7,8 @@ on:
       - completed
 
 env:
-  REGISTRY: registry.digitalocean.com/vakaden
-  APP_IMAGE_NAME: app
+  REGISTRY: "vakaden"
+  IMAGE_NAME: "app"
 
 jobs:
   deploy:
@@ -33,4 +33,3 @@ jobs:
             docker-compose -f docker-compose.prod.yml up -d --remove-orphans
             docker system prune -af
           EOF
-  
