@@ -23,24 +23,19 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
-            cd ~/vakaden || exit 1
-            echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
+              cd ~/vakaden || exit 1
 
-            # Make sure env vars are loaded
-            set -a
-            source .env
-            set +a
+              echo '${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}' | docker login registry.digitalocean.com -u doctl --password-stdin
 
-            # Debug: check substitution
-            docker-compose -f docker-compose.prod.yml config | grep image
-              
-            # Pull the specific images we just built
-            docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:frontend-latest
-            docker-compose -f docker-compose.prod.yml pull registry.digitalocean.com/vakaden/app:api-latest
+              # Update .env with latest image tags from Build workflow
+              sed -i '/FRONTEND_TAG=/d' .env
+              sed -i '/API_TAG=/d' .env
+              echo 'FRONTEND_TAG=${{ github.event.workflow_run.outputs.frontend-tag }}' >> .env
+              echo 'API_TAG=${{ github.event.workflow_run.outputs.api-tag }}' >> .env
 
-              # Start the services
+              # Pull and restart containers
+              docker-compose -f docker-compose.prod.yml pull
               docker-compose -f docker-compose.prod.yml up -d --remove-orphans
-              
-              # Clean up
+
               docker system prune -af
             "
