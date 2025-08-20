@@ -28,7 +28,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
             cd /home/${{ secrets.USERNAME }}/vakaden  # path to your project
             docker login registry.digitalocean.com -u doctl --password-stdin <<< "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}"
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker-compose pull
+            docker-compose up -d --remove-orphans
             docker system prune -af
           EOF
