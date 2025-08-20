@@ -21,13 +21,12 @@ jobs:
 
       - name: Deploy on Droplet
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
-            cd ~/vakaden || exit 1
-            echo "${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin
-            export REGISTRY=registry.digitalocean.com/vakaden
-            export FRONTEND_TAG=${{ github.event.workflow_run.outputs.frontend-tag }}
-            export API_TAG=${{ github.event.workflow_run.outputs.api-tag }}
-            docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker system prune -af
-          EOF
+          ssh -o StrictHostKeyChecking=no \
+            FRONTEND_TAG=${{ github.event.workflow_run.outputs.frontend-tag }} \
+            API_TAG=${{ github.event.workflow_run.outputs.api-tag }} \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }} "
+              cd ~/vakaden || exit 1
+              docker-compose -f docker-compose.prod.yml pull
+              docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+              docker system prune -af
+            "
