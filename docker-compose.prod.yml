@@ -19,7 +19,8 @@ services:
     image: registry.digitalocean.com/vakaden/app:api-latest
     container_name: vakaden_api
     volumes:
-      - ./api/db.sqlite3:/app/db.sqlite3
+      # Persist SQLite database in a host folder
+      - ./api_data/db.sqlite3:/app/db.sqlite3
     expose:
       - "8000"
     restart: always
@@ -37,3 +38,4 @@ services:
         certbot renew --webroot -w /var/www/certbot;
         sleep 12h & wait $${!};
       done'
+
