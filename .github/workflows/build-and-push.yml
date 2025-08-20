@@ -13,6 +13,14 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+    
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 600
+
       - name: Build and push frontend
         run: |
           FRONTEND_TAG="frontend-latest"
@@ -26,3 +34,5 @@ jobs:
           docker build -t registry.digitalocean.com/vakaden/app:$API_TAG ./api
           docker push registry.digitalocean.com/vakaden/app:$API_TAG
           echo "api-tag=$API_TAG" >> $GITHUB_OUTPUT
+
+
