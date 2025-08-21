@@ -32,7 +32,7 @@ export const makeDjangoApiRequest = async ({
     const endpoint = url.startsWith('/') ? url : `/${url}`;
     
     // Get the base URL from environment variables
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://www.vakaden.com/api';
     
     // Construct the full URL, ensuring no double slashes
     const fullUrl = `${API_BASE_URL.replace(/\/+$/, '')}${endpoint}`;
