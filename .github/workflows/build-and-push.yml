@@ -24,7 +24,7 @@ jobs:
       - name: Build and push frontend
         run: |
           FRONTEND_TAG="frontend-latest"
-          docker build -t registry.digitalocean.com/vakadeni/app:$FRONTEND_TAG ./frontend
+          docker build --build-arg VITE_API_BASE_URL=${VITE_API_BASE_URL} -t registry.digitalocean.com/vakadeni/app:$FRONTEND_TAG ./frontend
           docker push registry.digitalocean.com/vakadeni/app:$FRONTEND_TAG
           echo "frontend-tag=$FRONTEND_TAG" >> $GITHUB_OUTPUT
 
