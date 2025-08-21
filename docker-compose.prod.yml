@@ -2,6 +2,11 @@ version: '3.9'
 
 services:
   frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     image: registry.digitalocean.com/vakadeni/app:frontend-latest
     container_name: vakaden_frontend
     volumes:
